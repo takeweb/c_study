@@ -55,3 +55,59 @@ int main(void) {
 cc -std=c99 test.c    # C99 でコンパイル
 cc -std=c23 test.c    # C23 でコンパイル
 ```
+
+## 4. 変数を宣言できる場所（C89 と C99 の違い）
+
+K&R（第2版は C89 準拠）のサンプルでは、`for` の外で使わない変数も関数の先頭で宣言している。
+
+```c
+main()
+{
+    int fahr;     /* 関数の先頭で宣言 */
+
+    for (fahr = LOWER; fahr <= UPPER; fahr = fahr + STEP)
+        printf("%3d %6.1f\n", fahr, (5.0/9.0)*(fahr-32));
+}
+```
+
+これは C89 までは、変数をブロック `{ }` の先頭でしか宣言できず、`for` の中でも宣言できなかったため。
+
+| 規格 | `for (int i = 0; ...)` | 文の後での宣言（`printf(...); int x = 1;`） |
+|---|---|---|
+| K&R C・C89/C90 | できない | できない（ブロックの先頭だけ） |
+| C99 以降 | できる | できる |
+
+### このMacでの確認結果（Apple clang 21.0.0）
+
+| コンパイル方法 | `for` 内の宣言 | 文の後での宣言 |
+|---|---|---|
+| `-std=c89 -pedantic-errors` | エラー: `variable declaration in for loop is a C99-specific feature` | エラー: `mixing declarations and code is a C99 extension` |
+| `-std=c89`（`-pedantic-errors` なし） | 警告のみでコンパイルできる | ― |
+| `-std=c99 -pedantic-errors` | エラーなし | ― |
+| 指定なし（C17） | エラーなし | エラーなし |
+
+- clang は `-std=c89` でも、C99 の機能を拡張として受け付けてしまう。規格どおりに厳しくチェックしたいときは `-pedantic-errors` を付ける。
+
+### いま書くならどちらがよいか
+
+`for` の外で使わないなら、`for` の中で宣言する方がよい。
+
+```c
+for (int fahr = LOWER; fahr <= UPPER; fahr += STEP) {
+    ...
+}
+/* ここではもう fahr は使えない */
+```
+
+- 変数が使える範囲（スコープ）がループの中だけになり、ループの外での誤用や使い回しを防げる。
+- 宣言と使う場所が近いので読みやすい。
+
+ループを抜けた後も値を使うときは、`for` の前で宣言する。
+
+```c
+int i;
+for (i = 0; i < n; i++) {
+    if (a[i] == target) break;
+}
+printf("見つかった位置: %d\n", i);   /* ループの後で i を使う */
+```
