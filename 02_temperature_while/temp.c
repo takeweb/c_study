@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 /* 
-  fhr=0,20,・・・,300に対して、
+  fahrenheit=0,20,・・・,300に対して、
   華氏-摂氏対応表を印字する
 */
 int main() {
@@ -12,7 +12,7 @@ int main() {
     int fahrenheit = lower; /* 華氏 */
 
     while (fahrenheit <= upper) {
-        celsius = 5 * (fahrenheit - 32) / 9;
+        celsius = 5.0 * (fahrenheit - 32) / 9.0;
         printf("%3d %6.1f\n", fahrenheit, celsius);
         fahrenheit = fahrenheit + step;
     }
